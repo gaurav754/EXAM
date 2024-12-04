@@ -1,0 +1,336 @@
+#Principal component analysis(PCB)
+
+import numpy as np
+import pandas as pd
+from sklearn.decomposition import PCA
+import matplotlib.pyplot as plt
+
+
+#Simulated data for 10 students
+data = {
+    "Study Hours": [5, 3, 4, 6, 5, 2, 3, 4, 5, 6],
+    "Recreation Hours": [2, 4, 3, 1, 2, 5, 4, 3, 2, 1],
+    "Attendance (%)": [90, 75, 80, 95, 85, 60, 70, 75, 85, 95],
+    "Assignments Submitted": [8, 5, 6, 9, 7, 3, 4, 6, 7, 9],
+    "Sleep Hours": [7, 6, 6.5, 8, 7, 5, 5.5, 6, 7, 8]
+}
+
+#Create DataFrame
+df = pd.DataFrame(data)
+df
+
+from sklearn.preprocessing import StandardScaler
+
+#Standardize the data
+scaler = StandardScaler()  #Scaler is an object
+data_scaled = scaler.fit_transform(df)
+print(data_scaled)
+
+#Compute the covariance matrix
+#The covariance matix measures the relationship between features
+
+cov_matrix = np.cov(data_scaled.T)   # Transpose to compute covariance
+print("\nCovariance Matrix:\n",cov_matrix)
+
+# Eigen values: Magnitude of variance captured by each eigenvector
+
+eigenvalues, eigenvectors = np.linalg.eig(cov_matrix)
+print("Eigen values:",eigenvalues)
+eigenvectors
+
+# Sort eigenvalues and eigenvectors
+sorted_indices = np.argsort(eigenvalues)[::-1]
+sorted_eigenvalues = eigenvalues[sorted_indices]
+sorted_eigenvectors = eigenvectors[:, sorted_indices]
+
+
+#Choose top 2 principal components
+n_components = 2
+principal_components = sorted_eigenvectors[:, :n_components]
+print("\nPrincipal Components:\n", principal_components)
+
+
+# Project data onto principal components
+transformed_data = np.dot(data_scaled, principal_components)
+print("\nTransformed Data:\n", transformed_data)
+
+# Create a new DataFrame for the principal components
+pca_df = pd.DataFrame(data=principal_components, columns=["Principal Component 1", "Principal Component 2"])
+print("\nPrincipal Components:")
+print(pca_df)
+
+# Explained variance
+# Apply PCA to reduce dimensions to 2
+pca = PCA(n_components=2)
+principal_components = pca.fit_transform(data_scaled)
+print("\nExplained Variance Ratio:",pca.explained_variance_ratio_)
+
+
+# Plot the principal components
+plt.figure(figsize=(8, 6))
+plt.scatter(pca_df["Principal Component 1"], pca_df["Principal Component 2"], c="blue", edgecolor="k", s=100)
+plt.title("PCA of Students' Study Patterns", fontsize=16)
+plt.xlabel("Principal Component 1", fontsize=14)
+plt.ylabel("Principal Component 2", fontsize=14)
+plt.grid(True)
+plt.show()
+
+
+
+
+#ANNOVA
+
+import pandas as pd
+import scipy.stats as stats
+# Sample data: Scores of students in different subjects
+data = {
+    "Math": [85, 90, 88, 92, 75, 80, 95, 85, 89, 91],
+    "Science": [88, 86, 89, 91, 78, 84, 90, 87, 85, 88],
+    "English": [82, 80, 85, 83, 79, 81, 84, 83, 86, 87]
+}
+
+# Convert data to a DataFrame
+df = pd.DataFrame(data)
+
+# Perform ANOVA test
+f_stat, p_value = stats.f_oneway(df["Math"], df["Science"], df["English"])
+
+# Display the results
+print("ANOVA Results:")
+print(f"F-Statistic: {f_stat:.2f}")
+print(f"P-Value: {p_value:.4f}")
+
+# Interpret the results
+alpha = 0.05  # Significance level
+if p_value < alpha:
+    print("\nConclusion: There is a significant difference between the means of the groups.")
+else:
+    print("\nConclusion: There is no significant difference between the means of the groups.")
+
+
+
+
+#Chi Squared test
+
+import pandas as pd
+# Sample data: Water usage survey by college students
+data = {
+    "Student ID": ["STU001", "STU002", "STU003", "STU004", "STU005"],
+    "Drinking (L/day)": [2.5, 3.0, 2.0, 1.8, 2.2],
+    "Washing (L/day)": [10, 15, 8, 12, 18],
+    "Bathing (L/day)": [50, 60, 45, 55, 70],
+    "Other (L/day)": [5, 8, 4, 6, 10]
+}
+
+# Recommended limits (example values in liters per day)
+recommended_limits = {
+    "Drinking (L/day)": 3.0,
+    "Washing (L/day)": 12,
+    "Bathing (L/day)": 50,
+    "Other (L/day)": 6
+}
+
+# Convert data to a DataFrame
+df = pd.DataFrame(data)
+
+# Evaluate water usage
+def evaluate_usage(row):
+    issues = []
+    for activity, limit in recommended_limits.items():
+        if row[activity] > limit:
+            issues.append(f"{activity} exceeds limit")
+    return ", ".join(issues) if issues else "Usage within limits"
+
+# Apply evaluation
+df["Usage Status"] = df.apply(evaluate_usage, axis=1)
+
+# Calculate total water usage per student
+df["Total Usage (L/day)"] = df[
+    ["Drinking (L/day)", "Washing (L/day)", "Bathing (L/day)", "Other (L/day)"]
+].sum(axis=1)
+
+# Display the results
+print("Water Usage Analysis Report")
+print(df)
+
+# Summary statistics for total usage
+print("\nSummary Statistics:")
+print(df["Total Usage (L/day)"].describe())
+
+# Identify students exceeding 100 liters/day
+print("\nStudents Exceeding 100 Liters/Day:")
+print(df[df["Total Usage (L/day)"] > 100])
+
+
+
+#Z TEST
+
+import numpy as np
+from scipy import stats
+
+#Given data
+population_mean = 400
+population_std = 8
+sample_size = 100
+sample_mean = 398
+
+# Calculate the Z-Score
+z_score = (sample_mean - population_mean)/(population_std/np.sqrt(sample_size))
+
+# Calculate the p-value for two-tailed test
+p_value = 2*(1 - stats.norm.cdf(abs(z_score)))
+
+print(f"Z-Score: {z_score}")
+print(f"P-Score: {p_value}")
+
+# Conclusion
+alpha = 0.05
+if p_value < alpha:
+  print("Reject the null hypothesis: There is a significant difference in coffee can weight. ")
+else:
+  print("Fail to reject null hypothesis: No significant difference in coffee can weight.")
+
+
+
+
+#Z TEST
+
+from scipy import stats
+
+# Given data
+population_mean = 50    # Claimed mean sugar content
+sample_size = 15        # Sample size
+sample_mean = 48        # Observed sample mean
+sample_std = 5          # Sample standard deviation
+
+# Generate a random sample close to the observed sample mean
+np.random.seed(0)
+sample = np.random.normal(sample_mean, sample_std, sample_size)
+
+# Perform the one-sample t-test
+t_statistic, p_value = stats.ttest_1samp(sample, population_mean)
+
+print(f"T-statistic: {t_statistic}")
+print(f"P-value: {p_value}")
+
+# Conclusion
+alpha = 0.05  # Significance level
+if p_value < alpha:
+    print("Reject the null hypothesis: There is a significant difference in sugar content.")
+else:
+    print("Fail to reject the null hypothesis: No significant difference in sugar content.")
+
+
+#T_TEST
+
+
+# Given data for Class A
+mean_a = 78
+std_a = 10
+size_a = 15
+
+# Given data for Class B
+mean_b = 85
+std_b = 8
+size_b = 15
+
+# Generate random samples based on the mean and std deviation
+np.random.seed(0)
+class_a_scores = np.random.normal(mean_a, std_a, size_a)
+class_b_scores = np.random.normal(mean_b, std_b, size_b)
+
+# Perform the two-sample t-test
+t_statistic, p_value = stats.ttest_ind(class_a_scores, class_b_scores)
+
+print(f"T-statistic: {t_statistic}")
+print(f"P-value: {p_value}")
+
+# Conclusion
+alpha = 0.05  # Significance level
+if p_value < alpha:
+    print("Reject the null hypothesis: There is a significant difference in test scores between the classes.")
+else:
+    print("Fail to reject the null hypothesis: No significant difference in test scores between the classes.")
+
+
+
+
+#BIG_MART
+
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+url = 'https://raw.githubusercontent.com/akki8087/Big-Mart-Sales/refs/heads/master/Train.csv'
+df = pd.read_csv(url)
+df.head()
+
+
+
+#To check info
+df.info()
+
+
+#To check null values
+df.isnull().sum()   #return the count of missing values
+
+#Replace null values with median value
+df.fillna(df['Item_Weight'].median(), inplace=True)
+
+#Outlest_Size is replace with mode value
+df.fillna(df['Outlet_Size'].mode(), inplace=True)
+
+
+#Check null values exist or not
+df[['Item_Weight','Outlet_Size']].isnull().sum()
+
+#Corelational Analysis
+corr_matrix = df.corr(numeric_only=True)
+corr_matrix
+
+#Heat Map of Corelational Matrix
+sns.heatmap(corr_matrix, annot=True,cmap='coolwarm')
+plt.title('Correlation Heatmap')
+plt.show()
+
+# Visualization 1: Sales by Item Type
+plt.figure(figsize=(10, 6))
+sns.barplot(x='Item_Type', y='Item_Outlet_Sales', data=df)
+plt.title('Sales by Item Type')
+plt.xlabel('Item Type')
+plt.ylabel('Sales')
+plt.show()
+
+# Visualization 2: Sales by Outlet Type
+plt.figure(figsize=(10, 6))
+sns.boxplot(x='Outlet_Type', y='Item_Outlet_Sales', data=df)
+plt.title('Sales by Outlet Type')
+plt.xlabel('Outlet Type')
+plt.ylabel('Sales')
+plt.show()
+
+#Scattered Plot
+plt.figure(figsize=(10,6))
+sns.scatterplot(x='Item_Weight',y='Item_MRP',data=df)
+plt.title('Price of item with repect to weight')
+plt.xlabel('Item_Weight')
+plt.ylabel('Item_MRP')
+plt.show()
+
+#Item_MRP vs Item_Outlet_Sales
+plt.figure(figsize=(10,6))
+sns.scatterplot(x='Item_MRP',y='Item_Outlet_Sales',data=df)
+plt.title('Price of item with repect to weight')
+plt.xlabel('Item_MRP')
+plt.ylabel('Item_Outlet')
+plt.show()
+
+#Item_Visibility vs Item_Outlet_Sales
+plt.figure(figsize=(10,6))
+sns.regplot(x='Item_Visibility',y='Item_Outlet_Sales',data=df, line_kws={'color':'Red'})
+plt.title('Item_Visibility vs Item_Outlet_Sales')
+plt.xlabel('Item_Visibility')
+plt.ylabel('Item_Item_Outlet_Sales')
+plt.show()
+
