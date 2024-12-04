@@ -163,7 +163,7 @@ print(df[df["Total Usage (L/day)"] > 100])
 
 
 
-#Z TEST
+#Z_TEST
 
 import numpy as np
 from scipy import stats
@@ -193,7 +193,7 @@ else:
 
 
 
-#Z TEST
+#T_TEST
 
 from scipy import stats
 
@@ -219,6 +219,42 @@ if p_value < alpha:
     print("Reject the null hypothesis: There is a significant difference in sugar content.")
 else:
     print("Fail to reject the null hypothesis: No significant difference in sugar content.")
+
+
+
+#T_TEST
+
+from scipy.stats import t
+import numpy as np
+
+# Given data
+population_mean = 65 # Claimed population mean 
+sample_mean = 63 # Mean of sample data 
+sample_std_dev = 4 # Sample standard deviation 
+sample_size = 10 # Sample size
+alpha = 0.05 # Significance level
+
+
+# Step 3: Calculate the T-test statistic
+t_statistic = (sample_mean - population_mean) / (sample_std_dev / np.sqrt(sample_size)) 
+# Step 4: Compute the p-value (two-tailed test) 
+p_value = 2 * (1 - t.cdf(abs(t_statistic), df=sample_size-1)) 
+
+# Step 4: Compute the p-value (two-tailed test)
+p_value = 2 * (1 - t.cdf(abs(t_statistic), df=sample_size-1))
+# Step 5: Conclusion
+if p_value < alpha: 
+    conclusion = "Reject the null hypothesis."
+else:
+     conclusion = "Fail to reject the null hypothesis." 
+print(f"T-statistic: {t_statistic}")
+print(f"P-value: {p_value}") 
+print(f"Conclusion: {conclusion}")
+
+
+
+
+
 
 
 #T_TEST
